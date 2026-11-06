@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="description" content="Remove vocals from MP3s locally in your browser, with quick offline filtering or compact MDX-Net AI separation." />
+  <title>StemLab — Local Vocal Remover</title>
+  <style>
+    :root{--bg:#090d16;--panel:#131b2a;--panel2:#192334;--edge:#2a354a;--text:#f3f7ff;--muted:#96a6bf;--purple:#a490ff;--aqua:#52e0ce;--yellow:#f9c878;--danger:#ff7f90;--radius:19px}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:radial-gradient(900px 500px at 8% -9%,#28305b7c,transparent),radial-gradient(650px 420px at 95% 8%,#163d5273,transparent),var(--bg);line-height:1.5}
+    button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.45}button:focus-visible,input:focus-visible,select:focus-visible,.dropzone:focus-visible{outline:2px solid var(--aqua);outline-offset:3px}
+    .shell{max-width:1160px;margin:auto;padding:27px 24px 74px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:45px}.brand{display:flex;gap:12px;align-items:center;font-weight:850;font-size:21px;letter-spacing:-.8px}.brandmark{display:grid;place-items:center;width:39px;height:39px;border-radius:13px;background:linear-gradient(135deg,#b596ff,#50e0cd);color:#090c18;box-shadow:0 6px 23px #926dff48}.brand span:last-child{color:var(--aqua)}.private{display:flex;align-items:center;gap:9px;border:1px solid #2c4c4a;color:#b8ede6;background:#14302e65;padding:9px 14px;border-radius:99px;font-size:12px;font-weight:650}.dot{width:7px;height:7px;background:var(--aqua);border-radius:50%;box-shadow:0 0 11px #52e0cea8}
+    .intro{max-width:750px;margin:0 auto 35px;text-align:center}.eyebrow{text-transform:uppercase;letter-spacing:3px;color:#ac9af9;font-size:11px;font-weight:800;margin-bottom:12px}.intro h1{font-size:clamp(34px,5.3vw,62px);line-height:1.09;letter-spacing:-2.6px;margin:0 0 18px;font-weight:850}.intro h1 .accent{background:linear-gradient(105deg,#ad96ff,#64f0db);background-clip:text;-webkit-background-clip:text;color:transparent}.intro p{font-size:16px;color:var(--muted);margin:0 auto;max-width:600px}
+    .workspace{display:grid;grid-template-columns:minmax(0,1.04fr) minmax(330px,.96fr);gap:22px;align-items:start}.panel{background:linear-gradient(155deg,#172032,#111927);border:1px solid var(--edge);border-radius:var(--radius);box-shadow:0 15px 55px #03060d3a;min-width:0}.panel-inner{padding:25px}.sectionhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px}.sectionhead h2{font-size:16px;letter-spacing:-.3px;margin:0;font-weight:770}.num{display:inline-grid;place-items:center;width:26px;height:26px;margin-right:9px;border-radius:8px;color:#d5caff;background:#a890ff24;font-size:12px}.micro{font-size:12px;color:var(--muted)}
+    .dropzone{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:226px;border:1.5px dashed #56647f;border-radius:15px;background:radial-gradient(ellipse at top,#292a4a9c,transparent 80%),#0c1422;transition:border-color .2s,background .2s;cursor:pointer;padding:20px;text-align:center}.dropzone.drag{border-color:var(--aqua);background:#14313a}.uploadIcon{width:54px;height:54px;border:1px solid #4a527a;border-radius:17px;display:grid;place-items:center;background:#222844;color:#b5a3ff;margin-bottom:16px}.dropzone strong{font-size:15px}.dropzone .sub{font-size:12px;color:var(--muted);margin-top:6px}.choose{margin-top:18px;border:1px solid #9480eb;background:#9d87f3;color:#121226;font-size:13px;font-weight:800;border-radius:10px;padding:10px 17px}.choose:hover{background:#b29eff}
+    .filebox{display:none;padding:16px;border:1px solid #40506c;background:#0e1725;border-radius:14px;gap:12px;align-items:center}.fileicon{flex:0 0 42px;height:42px;display:grid;place-items:center;border-radius:11px;background:#293550;color:var(--aqua)}.fileinfo{min-width:0;flex:1}.fileinfo strong{font-size:13px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fileinfo small{font-size:11px;color:var(--muted)}.tinybtn{border:1px solid #45546a;border-radius:9px;padding:7px 10px;color:#d4dded;background:#243044;font-size:12px;font-weight:650}.tinybtn:hover{background:#30415d}
+    #wavebox{display:none;margin-top:13px;background:#0d1523;border:1px solid #26374a;border-radius:12px;overflow:hidden;position:relative}#waveform{display:block;width:100%;height:88px}#originalAudio{display:block;width:calc(100% - 24px);height:38px;margin:9px 12px 22px}#wavebox:after{content:"ORIGINAL WAVEFORM";position:absolute;left:12px;bottom:7px;font-weight:750;letter-spacing:1.2px;font-size:8px;color:#8092b3;pointer-events:none}
+    .divider{height:1px;background:#2a3546;margin:23px 0}.methods{display:grid;grid-template-columns:1fr 1fr;gap:10px}.method{position:relative;padding:16px 13px 14px;background:#101929;border:1px solid #37465b;border-radius:13px;cursor:pointer;min-height:133px;text-align:left;display:block}.method.active{border-color:#a592fa;background:linear-gradient(140deg,#392b59a6,#17233b);box-shadow:inset 0 0 0 1px #a592fa46}.method input{position:absolute;opacity:0;pointer-events:none}.methodtop{display:flex;justify-content:space-between;gap:4px;align-items:center;margin-bottom:9px}.methodname{font-size:13px;font-weight:820}.methodcheck{width:15px;height:15px;border-radius:50%;border:1.5px solid #697993;display:grid;place-items:center}.method.active .methodcheck{background:#ac99ff;border-color:#ac99ff}.method.active .methodcheck:after{content:"";background:#141724;width:5px;height:5px;border-radius:50%}.method p{font-size:11px;color:#aebcd1;line-height:1.5;margin:0}.tag{display:inline-block;font-size:9px;color:#bcefe4;border-radius:5px;background:#2c5b544c;padding:3px 6px;margin-top:12px;font-weight:750}.tag.purple{background:#44345a;color:#d8c4ff}
+    .options{margin-top:17px;background:#0d1522;border:1px solid #2b394c;padding:16px;border-radius:12px}.options label{font-size:12px;color:#d8e0ef;font-weight:670}.flexline{display:flex;align-items:center;justify-content:space-between;gap:12px}.slider{width:100%;accent-color:#b19cff;margin:10px 0}.rangeLabels{display:flex;justify-content:space-between;color:#8391a9;font-size:10px;margin-top:-5px}.checkrow{display:flex;align-items:center;gap:9px;margin-top:14px;color:#bbc9db;font-size:12px}.checkrow input{accent-color:#a890ff;width:15px;height:15px;margin:0}.note{color:#a3b3c9;font-size:11px;line-height:1.6;margin-top:12px}.ai-select{display:none}.ai-select.show{display:block}.modelupload{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:14px}.modelupload span{font-size:11px;color:var(--muted)}.modelupload label{display:inline-block;border:1px solid #53617d;border-radius:8px;color:#dcd6ff;font-size:11px;padding:7px 11px;cursor:pointer}.modelupload input{display:none}#modelFilename{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .run{display:flex;gap:9px;align-items:center;justify-content:center;margin-top:20px;border:0;width:100%;height:50px;border-radius:12px;color:#090f1e;background:linear-gradient(110deg,#b7a2ff,#66e5d7);font-size:14px;font-weight:850;box-shadow:0 10px 25px #5ab0c325}.run:hover:not(:disabled){filter:brightness(1.07);transform:translateY(-1px)}.run svg{width:18px;height:18px}.status{margin-top:15px;display:none;background:#0d1522;border:1px solid #2a3f59;padding:14px;border-radius:12px}.status.visible{display:block}.status .line{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:11px;margin-bottom:9px}.status #stage{font-weight:750;color:#dce8fb}.status #pct{color:var(--aqua);font-variant-numeric:tabular-nums}.bar{height:6px;background:#29394a;border-radius:20px;overflow:hidden}.bar>div{width:0%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#ae99ff,#52e0ce);transition:width .15s}.status small{display:block;color:var(--muted);font-size:10px;margin-top:10px}.cancel{color:#ffb4bb;background:transparent;border:0;text-decoration:underline;font-size:11px;margin:9px 0 0;padding:0}.error{display:none;margin-top:13px;color:#ffcad1;background:#57314260;border:1px solid #a95566;padding:11px 13px;border-radius:10px;font-size:12px;white-space:pre-wrap}
+    .result-panel{min-height:476px}.placeholder{min-height:374px;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:32px;color:var(--muted)}.placeholderIcon{display:grid;place-items:center;width:79px;height:79px;border-radius:25px;background:#1d2940;border:1px solid #36445f;color:#7184a6;margin-bottom:18px}.placeholder strong{font-size:17px;color:#d5def0;margin-bottom:7px}.placeholder p{font-size:13px;max-width:240px;margin:0}
+    .results{display:none}.resultstatus{display:flex;align-items:center;gap:7px;color:#7be6d6;font-size:11px;font-weight:750;margin-bottom:13px}.stemcard{padding:15px;background:#0d1725;border:1px solid #33445c;border-radius:14px;margin-top:13px}.stemtitle{display:flex;justify-content:space-between;align-items:start;gap:6px}.stemtitle strong{font-size:13px}.stemtitle small{display:block;font-size:10px;color:var(--muted);margin-top:3px}.stemDot{height:9px;width:9px;border-radius:4px;background:var(--aqua);margin-right:5px;display:inline-block}.stemDot.voice{background:#ba9fff}.stemcanvas{width:100%;height:64px;display:block;margin-top:9px;border-radius:7px}.audio{width:100%;height:39px;margin:9px 0 8px;display:block;accent-color:var(--purple)}.actions{display:flex;gap:8px;flex-wrap:wrap}.download{background:#253b43;border:1px solid #3e7778;color:#a9eee5;border-radius:9px;padding:8px 12px;font-size:11px;font-weight:800}.download:hover{background:#31525a}.download.secondary{color:#d9d2ff;border-color:#6a5a98;background:#2d2b49}.download.secondary:hover{background:#40375c}.disclaimer{font-size:11px;color:#a3b3c9;margin-top:16px}.bottom{margin-top:22px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.feature{border:1px solid #28394c;border-radius:14px;background:#111b29ad;padding:17px}.feature strong{display:block;font-size:12px;margin-bottom:6px}.feature p{font-size:11px;line-height:1.6;color:var(--muted);margin:0}.feature .featureIcon{display:inline-flex;color:#a995ff;margin-right:7px;font-size:15px}.footer{display:flex;justify-content:space-between;gap:16px;color:#75869f;font-size:11px;margin-top:35px}.footer a{color:#a9bfff;text-underline-offset:3px}.show{display:block!important}.hidden{display:none!important}
+    @media(max-width:830px){.workspace{grid-template-columns:1fr}.result-panel{min-height:350px}.placeholder{min-height:280px}.topbar{margin-bottom:32px}.intro{margin-bottom:26px}.bottom{grid-template-columns:1fr 1fr}}@media(max-width:540px){.shell{padding:19px 13px 40px}.intro h1{letter-spacing:-1.5px}.intro p{font-size:13px}.panel-inner{padding:18px}.topbar{margin-bottom:27px}.private{font-size:10px;padding:7px 9px}.methods{gap:8px}.method{padding:13px 10px}.methodname{font-size:12px}.method p{font-size:10px}.bottom{grid-template-columns:1fr}.footer{flex-direction:column;gap:4px}.dropzone{min-height:195px}}
+  </style>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand"><div class="brandmark" aria-hidden="true">♫</div><div>STEM<span>LAB</span></div></div>
+    <div class="private"><i class="dot" aria-hidden="true"></i> Your music stays on your device</div>
+  </header>
+  <section class="intro">
+    <div class="eyebrow">Personal audio workbench</div>
+    <h1>Turn any song into <span class="accent">an instrumental.</span></h1>
+    <p>Upload an MP3, remove the vocals, preview both tracks, and save your results. No account, no uploading your music.</p>
+  </section>
+  <main class="workspace">
+    <section class="panel"><div class="panel-inner">
+      <div class="sectionhead"><h2><span class="num">01</span>Choose your song</h2><span class="micro">MP3 · WAV · M4A · OGG</span></div>
+      <div id="dropzone" class="dropzone" role="button" tabindex="0" aria-label="Choose or drop an audio file">
+        <div class="uploadIcon" aria-hidden="true">
+          <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 16V3m0 0L7 8m5-5 5 5M4 16.5v2.3A2.2 2.2 0 0 0 6.2 21h11.6a2.2 2.2 0 0 0 2.2-2.2v-2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <strong>Drop your audio file here</strong><span class="sub">or browse your device. Nothing is uploaded.</span>
+        <button type="button" id="chooseBtn" class="choose">Browse files</button>
+      </div>
+      <div id="filebox" class="filebox"><div class="fileicon">♫</div><div class="fileinfo"><strong id="filename"></strong><small id="filemeta"></small></div><button class="tinybtn" id="replaceBtn">Change</button></div>
+      <div id="wavebox"><canvas id="waveform" aria-label="Original audio waveform"></canvas><audio id="originalAudio" controls preload="metadata" aria-label="Original song player"></audio></div>
+      <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.m4a,.ogg,.flac,.aac" hidden />
+      <div class="divider"></div>
+      <div class="sectionhead"><h2><span class="num">02</span>Choose separation method</h2></div>
+      <div class="methods" role="radiogroup" aria-label="Separation method">
+        <label id="quickCard" class="method active"><input type="radio" name="method" value="quick" checked><div class="methodtop"><span class="methodname">⚡ Quick removal</span><span class="methodcheck"></span></div><p>Instant, fully offline. Best for songs with centered lead vocals.</p><span class="tag">No download needed</span></label>
+        <label id="aiCard" class="method"><input type="radio" name="method" value="ai"><div class="methodtop"><span class="methodname">✧ AI separation</span><span class="methodcheck"></span></div><p>Real, compact MDX-Net models for better separation without the huge Demucs memory demand.</p><span class="tag purple">Compact AI model: ~30 MB</span></label>
+      </div>
+      <div id="quickOptions" class="options">
+        <div class="flexline"><label for="strength">Vocal removal strength</label><span class="micro" id="strengthValue">100%</span></div>
+        <input class="slider" id="strength" type="range" min="50" max="100" value="100" step="5" /><div class="rangeLabels"><span>More original sound</span><span>More vocal reduction</span></div>
+        <div class="flexline" style="margin-top:15px"><label for="bass">Preserve centered bass</label><span class="micro" id="bassValue">75%</span></div>
+        <input class="slider" id="bass" type="range" min="0" max="100" value="75" step="5" /><div class="rangeLabels"><span>Stronger cancellation</span><span>Fuller low end</span></div>
+        <p class="note">Quick mode cancels sound shared by the left and right channels. It cannot perfectly remove vocals and may reduce centered instruments too.</p>
+      </div>
+      <div id="aiOptions" class="options ai-select">
+        <div class="flexline"><label for="aiModel">AI model</label><span class="micro" id="modelState">Not loaded</span></div>
+        <select id="aiModel" aria-label="Choose AI model" style="display:block;width:100%;padding:11px;margin-top:10px;background:#1a2639;border:1px solid #465875;border-radius:9px;color:#f3f7ff;font-size:12px">
+          <option value="UVR_MDXNET_KARA_2">Compact · Karaoke (30 MB, recommended)</option>
+          <option value="Kim_Vocal_2">Balanced · Full vocal removal (67 MB)</option>
+          <option value="UVR-MDX-NET-Voc_FT">Alternative · Vocals fine-tuned (67 MB)</option>
+          <option value="htdemucs">Advanced · Demucs v4 (166 MB · high memory)</option>
+        </select>
+        <p class="note" id="aiModelNote">Compact removes lead vocals while keeping more backing vocals. For stronger removal of lead and backing vocals, choose Balanced. All inference runs locally.</p>
+        <div class="flexline" style="margin-top:14px"><label for="aiBackend">Processing device</label><span class="micro" id="deviceState"></span></div>
+        <select id="aiBackend" aria-label="AI processing backend" style="display:block;width:100%;padding:10px;margin-top:9px;background:#1a2639;border:1px solid #465875;border-radius:9px;color:#f3f7ff;font-size:12px">
+          <option value="auto">Auto · GPU if available, CPU otherwise</option>
+          <option value="cpu">CPU only · try this if GPU memory fails</option>
+        </select>
+        <p class="note">First use needs internet for the model and runtime. Compact models are cached when browser storage permits; Demucs caching depends on browser HTTP cache. No audio is uploaded. AI may still be slow on low-power devices; use a short test clip first.</p>
+      </div>
+      <label class="checkrow"><input id="normalize" type="checkbox" checked/> Normalize result levels (recommended)</label>
+      <button type="button" class="run" id="runBtn" disabled><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m8 5 12 7-12 7V5Z"/></svg><span id="runText">Remove vocals</span></button>
+      <div id="status" class="status" role="status" aria-live="polite"><div class="line"><span id="stage">Getting ready…</span><span id="pct">0%</span></div><div class="bar"><div id="progress"></div></div><small id="statusDetail">Working on your device…</small><button type="button" class="cancel" id="cancelBtn">Cancel processing</button></div>
+      <div id="error" class="error" role="alert"></div>
+    </div></section>
+    <section class="panel result-panel"><div class="panel-inner">
+      <div class="sectionhead"><h2><span class="num">03</span>Preview & download</h2><span class="micro" id="resultMeta">2 outputs</span></div>
+      <div id="placeholder" class="placeholder"><div class="placeholderIcon" aria-hidden="true"><svg width="39" height="39" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"><path d="M3 10v4m4-8v12m4-16v20m4-16v12m4-10v8m4-4v0"/></svg></div><strong>Your studio is ready</strong><p>Choose a song and process it to see your instrumental and isolated vocal tracks here.</p></div>
+      <div id="results" class="results">
+        <div class="resultstatus">✓ &nbsp;Separation complete <span class="micro" id="resultMethod"></span></div>
+        <div class="stemcard"><div class="stemtitle"><div><strong><span class="stemDot"></span>Instrumental</strong><small>Music with the lead vocals reduced</small></div><span class="micro">MUSIC</span></div><canvas class="stemcanvas" id="instrumentCanvas" aria-label="Instrumental waveform"></canvas><audio class="audio" id="instrumentAudio" controls preload="metadata"></audio><div class="actions"><button class="download" id="instrumentWav">↓ Download WAV</button><button class="download secondary mp3" data-stem="instrument">↓ Download MP3</button></div></div>
+        <div class="stemcard"><div class="stemtitle"><div><strong><span class="stemDot voice"></span>Vocals</strong><small id="vocalDescription">Estimated center content (quick mode)</small></div><span class="micro">VOICE</span></div><canvas class="stemcanvas" id="vocalsCanvas" aria-label="Vocals waveform"></canvas><audio class="audio" id="vocalsAudio" controls preload="metadata"></audio><div class="actions"><button class="download" id="vocalsWav">↓ Download WAV</button><button class="download secondary mp3" data-stem="vocals">↓ Download MP3</button></div></div>
+        <p class="disclaimer" id="resultDisclaimer"></p>
+      </div>
+    </div></section>
+  </main>
+  <section class="bottom">
+    <div class="feature"><strong><span class="featureIcon">⌁</span> Private by design</strong><p>All decoding, filtering, AI inference, and exporting happen on your computer. No audio files are sent to a server.</p></div>
+    <div class="feature"><strong><span class="featureIcon">◉</span> Real AI option</strong><p>Choose compact MDX-Net models or optional high-memory Demucs v4; both perform actual ONNX inference locally.</p></div>
+    <div class="feature"><strong><span class="featureIcon">↓</span> Own your result</strong><p>Listen before downloading. WAV works offline. MP3 export may need an encoder download on first use.</p></div>
+  </section>
+  <div class="footer"><span>StemLab · local-first audio separation</span><span>AI models: <a href="https://github.com/StemSplit/demucs-onnx" target="_blank" rel="noopener noreferrer">Demucs ONNX</a> · <a href="https://github.com/incidentist/web-audio-separation" target="_blank" rel="noopener noreferrer">web-audio-separation</a> · <a href="https://huggingface.co/AI4future/RVC" target="_blank" rel="noopener noreferrer">UVR MDX-Net</a></span></div>
+</div>
+<!-- Map the separator library's ONNX Runtime peer dependency to a pinned WebGPU-capable browser ESM build. -->
+<script type="importmap">
+{ "imports": { "onnxruntime-web": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.29.0/dist/ort.webgpu.bundle.min.mjs" } }
+</script>
+<script>
+'use strict';
+(() => {
+  const $ = id => document.getElementById(id);
+  const els = {dropzone:$('dropzone'),fileInput:$('fileInput'), filebox:$('filebox'), filename:$('filename'), filemeta:$('filemeta'), wavebox:$('wavebox'), waveform:$('waveform'), run:$('runBtn'),runText:$('runText'), status:$('status'), stage:$('stage'), pct:$('pct'), progress:$('progress'), detail:$('statusDetail'), error:$('error'), placeholder:$('placeholder'),results:$('results')};
+  let file = null, audioContext = null, decoded = null, stems = null, urls = [], processing = false, cancelled = false, stageMode = 'quick';
+  let originalUrl = null, separatorModulePromise = null, separator = null, separatorKey = null;
+  const SEPARATOR_LIB_URL = 'https://cdn.jsdelivr.net/npm/web-audio-separation@0.3.1/dist/index.js';
+  const $sleep = () => new Promise(resolve => setTimeout(resolve, 0));
+  const isAbort = () => {if(cancelled) throw new DOMException('Processing cancelled', 'AbortError');};
+  function showError(message){els.error.textContent = message;els.error.style.display='block';}
+  function clearError(){els.error.style.display='none';els.error.textContent='';}
+  function updateProgress(value, title, detail='Processing locally…'){
+    els.status.classList.add('visible');els.progress.style.width = Math.min(100,Math.max(0,value))+'%';els.pct.textContent=Math.round(value)+'%';els.stage.textContent=title;els.detail.textContent=detail;
+  }
+  function duration(n){if(!isFinite(n))return '—';let x=Math.floor(n);return `${Math.floor(x/60)}:${String(x%60).padStart(2,'0')}`}
+  function fileSize(n){return n<1048576?(n/1024).toFixed(0)+' KB':(n/1048576).toFixed(1)+' MB'}
+  function setMode(which){stageMode=which;document.querySelectorAll('.method').forEach(c=>c.classList.toggle('active',c.querySelector('input').value===which));$('quickOptions').classList.toggle('hidden',which!=='quick');$('aiOptions').classList.toggle('show',which==='ai');$('quickOptions').style.display=which==='quick'?'block':'none';$('aiOptions').style.display=which==='ai'?'block':'none';if(file && !processing){els.run.disabled=false;} if(decoded){clearError();if(which==='quick' && decoded.numberOfChannels===1)showError('Quick removal needs stereo audio. Select AI separation for mono tracks.');} }
+  document.querySelectorAll('input[name="method"]').forEach(i=>i.addEventListener('change',e=>setMode(e.target.value)));
+  ['strength','bass'].forEach(id=>$(id).addEventListener('input',()=>$(id+'Value').textContent=$(id).value+'%'));
+  function pickFile(){if(!processing) els.fileInput.click()}
+  $('chooseBtn').addEventListener('click',e=>{e.stopPropagation();pickFile()});els.dropzone.addEventListener('click',pickFile);els.dropzone.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pickFile()}});$('replaceBtn').addEventListener('click',pickFile);
+  els.fileInput.addEventListener('change',()=>{if(els.fileInput.files[0])setFile(els.fileInput.files[0])});
+  for(let evt of ['dragenter','dragover']){els.dropzone.addEventListener(evt,e=>{e.preventDefault();els.dropzone.classList.add('drag')})}
+  for(let evt of ['dragleave','drop']){els.dropzone.addEventListener(evt,e=>{e.preventDefault();els.dropzone.classList.remove('drag')})}
+  els.dropzone.addEventListener('drop',e=>{if(!processing && e.dataTransfer.files[0])setFile(e.dataTransfer.files[0])});
+  const modelHelp = {
+    UVR_MDXNET_KARA_2: 'Compact (~30 MB): reduces lead vocals but deliberately preserves more backing vocals for karaoke. Lowest memory option.',
+    Kim_Vocal_2: 'Balanced (~67 MB): targets lead and backing vocals. Better for clean instrumentals but uses more memory.',
+    'UVR-MDX-NET-Voc_FT': 'Alternative (~67 MB): different fine-tuned vocals model for songs the Balanced option misses.',
+    htdemucs: 'Advanced Demucs v4 (~166 MB download). Uses much more memory than Compact/Balanced and can fail with std::bad_alloc on Chromebooks. Only loads when selected.'
+  };
+  $('aiModel').addEventListener('change', () => {
+    $('aiModelNote').textContent = modelHelp[$('aiModel').value];
+    $('modelState').textContent = 'Ready to load';
+  });
+  $('aiBackend').addEventListener('change', () => { $('modelState').textContent = 'Ready to load'; });
+  $('deviceState').textContent = navigator.gpu ? 'WebGPU detected' : 'CPU fallback';
+  async function decode(f){
+    if(!audioContext || audioContext.state==='closed')audioContext=new (window.AudioContext||window.webkitAudioContext)();
+    const buffer=await f.arrayBuffer();return await audioContext.decodeAudioData(buffer);
+  }
+  async function setFile(f){
+    if(!f || processing)return;
+    clearError();
+    if(!(/^audio\//.test(f.type)||/\.(mp3|wav|ogg|m4a|flac|aac|opus)$/i.test(f.name))){showError('Please choose a supported audio file (MP3, WAV, M4A, OGG, or similar).');return;}
+    file=f; decoded=null;stems=null;cleanupUrls();if(originalUrl)URL.revokeObjectURL(originalUrl);originalUrl=URL.createObjectURL(f);$('originalAudio').src=originalUrl;els.results.style.display='none';els.placeholder.style.display='flex';els.dropzone.style.display='none';els.filebox.style.display='flex';els.filename.textContent=f.name;els.filemeta.textContent=fileSize(f.size)+' · Decoding…';els.wavebox.style.display='none';els.run.disabled=true;
+    try{
+      const current=f;
+      const buffer=await decode(f);if(file!==current)return;
+      decoded=buffer;els.filemeta.textContent=`${duration(buffer.duration)} · ${buffer.numberOfChannels===1?'Mono':'Stereo'} · ${Math.round(buffer.sampleRate/100)/10} kHz · ${fileSize(f.size)}`;
+      els.wavebox.style.display='block';drawWave(els.waveform,buffer.getChannelData(0),buffer.numberOfChannels>1?buffer.getChannelData(1):null,'#ae9bff');
+      els.run.disabled=false;
+      if(buffer.numberOfChannels===1 && stageMode==='quick')showError('This is a mono song. Quick stereo cancellation cannot remove vocals from mono audio. Select AI separation for a proper result.');
+    }catch(err){showError('Could not decode that audio file in this browser: '+(err.message||err));els.filemeta.textContent=fileSize(f.size)+' · Unsupported format';}
+  }
+  function cleanupUrls(){for(const u of urls)URL.revokeObjectURL(u);urls=[];for(const id of ['instrumentAudio','vocalsAudio']){$(id).pause();$(id).removeAttribute('src');$(id).load();}}
+  function drawWave(canvas,left,right,color){
+    const width=Math.max(240,Math.round(canvas.getBoundingClientRect().width*devicePixelRatio)),height=Math.round(canvas.getBoundingClientRect().height*devicePixelRatio);
+    if(!width||!height)return;canvas.width=width;canvas.height=height;
+    let c=canvas.getContext('2d');c.clearRect(0,0,width,height);c.fillStyle='rgba(95,112,140,.13)';c.fillRect(0,Math.round(height/2),width,1);c.fillStyle=color;
+    const bins=Math.max(1,Math.floor(left.length/width));const step=Math.max(1,Math.floor(bins/4));
+    for(let x=0;x<width;x++){
+      let a=0,from=x*bins,to=Math.min(left.length,from+bins),n=0;
+      for(let i=from;i<to;i+=step){let v=Math.max(Math.abs(left[i]),right?Math.abs(right[i]):0);a=Math.max(v,a);n++}
+      const h=Math.max(1,Math.round(a*height*.45));c.globalAlpha=.52+.48*Math.min(1,a*2);c.fillRect(x,Math.round(height/2-h),1,h*2);
+    }
+    c.globalAlpha=1;
+  }
+  function channelsFromBuffer(buf){const left=buf.getChannelData(0),right=buf.numberOfChannels>=2?buf.getChannelData(1):left;return[left,right]}
+  async function quickSeparate(){
+    const [l,r]=channelsFromBuffer(decoded);const n=l.length, rate=decoded.sampleRate;
+    if(decoded.numberOfChannels===1)throw Error('Quick removal needs a stereo song. For mono audio, use AI separation.');
+    let left=new Float32Array(n),right=new Float32Array(n),voiceL=new Float32Array(n),voiceR=new Float32Array(n);
+    const rem=Number($('strength').value)/100,bassGain=Number($('bass').value)/100;
+    const alpha=1-Math.exp(-2*Math.PI*145/rate);let z1=0,z2=0,z3=0,z4=0;
+    const block=160000;
+    for(let from=0;from<n;from+=block){isAbort();const end=Math.min(n,from+block);
+      for(let i=from;i<end;i++){
+        const mid=(l[i]+r[i])*.5;z1+=alpha*(mid-z1);z2+=alpha*(z1-z2);z3+=alpha*(z2-z3);z4+=alpha*(z3-z4);
+        const center=mid*rem-z4*rem*bassGain;
+        left[i]=l[i]-center;right[i]=r[i]-center;voiceL[i]=center;voiceR[i]=center;
+      }
+      updateProgress(8+80*end/n,'Removing centered vocals',`${duration(end/rate)} of ${duration(decoded.duration)} processed`);
+      await $sleep();
+    }
+    return {sampleRate:rate,instrument:[left,right],vocals:[voiceL,voiceR]};
+  }
+  function normalize(pair){
+    let peak=0;for(let c of pair){for(let i=0;i<c.length;i++)peak=Math.max(peak,Math.abs(c[i]))}
+    if(peak<.00001)return;
+    const gain=Math.min(4,.975/peak);if(gain<=0)return;
+    for(let c of pair)for(let i=0;i<c.length;i++)c[i]*=gain;
+  }
+  function makeWav(pair,rate){
+    const length=pair[0].length,bytes=length*4,data=new ArrayBuffer(44+bytes),view=new DataView(data);
+    const str=(i,text)=>{for(let k=0;k<text.length;k++)view.setUint8(i+k,text.charCodeAt(k))};
+    str(0,'RIFF');view.setUint32(4,36+bytes,true);str(8,'WAVE');str(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,2,true);view.setUint32(24,rate,true);view.setUint32(28,rate*4,true);view.setUint16(32,4,true);view.setUint16(34,16,true);str(36,'data');view.setUint32(40,bytes,true);
+    const a=pair[0],b=pair[1];let j=44;
+    for(let i=0;i<length;i++){let v=Math.max(-1,Math.min(1,a[i]));view.setInt16(j,v<0?v*32768:v*32767,true);j+=2;v=Math.max(-1,Math.min(1,b[i]));view.setInt16(j,v<0?v*32768:v*32767,true);j+=2}
+    return new Blob([data],{type:'audio/wav'});
+  }
+  function blobUrl(blob){let u=URL.createObjectURL(blob);urls.push(u);return u}
+  function downloadBlob(blob,name){const a=document.createElement('a');const u=URL.createObjectURL(blob);a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000)}
+  function baseName(){return (file?.name||'audio').replace(/\.[^.]+$/,'').replace(/[\\/:*?"<>|]/g,'_').slice(0,90)}
+  async function showResults(separated,which){
+    if($('normalize').checked){updateProgress(92,'Balancing audio levels');normalize(separated.instrument);normalize(separated.vocals);await $sleep()}
+    isAbort();updateProgress(95,'Preparing previews','Encoding WAV audio locally');
+    const instrumental=makeWav(separated.instrument,separated.sampleRate),vocal=makeWav(separated.vocals,separated.sampleRate);
+    isAbort();stems={...separated,wavs:{instrument:instrumental,vocals:vocal}};
+    $('instrumentAudio').src=blobUrl(instrumental);$('vocalsAudio').src=blobUrl(vocal);
+    els.placeholder.style.display='none';els.results.style.display='block';$('resultMethod').textContent=which==='ai'?($('aiModel').value==='htdemucs'?'· Demucs v4 AI':'· MDX-Net AI'):'· Fast center filter';
+    $('vocalDescription').textContent=which==='ai'?'AI-estimated vocal stem':'Estimated center content (not an AI vocal stem)';
+    $('resultDisclaimer').textContent=which==='ai'?'AI separation is approximate; faint residual vocals or musical artifacts may remain.':'Quick mode extracts/cancels the stereo center, not the voice specifically. For higher fidelity, select AI separation and process again.';
+    $('resultMeta').textContent=duration(separated.instrument[0].length/separated.sampleRate);
+    drawWave($('instrumentCanvas'),...separated.instrument,'#52e0ce');drawWave($('vocalsCanvas'),...separated.vocals,'#b79df7');
+    updateProgress(100,'Completed','Your audio is ready to preview or download.');
+  }
+  function reportAiProgress(event) {
+    if (event.stage === 'loading-model') {
+      updateProgress(10 + 20 * Math.min(1, event.fraction), 'Loading AI model', 'Downloading or using a cached model, then initializing ONNX Runtime…');
+    } else if (event.stage === 'demixing') {
+      const done = event.chunk || 0, total = event.totalChunks || 0;
+      updateProgress(35 + 52 * Math.min(1, event.fraction), 'Separating with AI', total ? `Segment ${done} of ${total} · processing on this device` : 'Processing audio locally…');
+    } else if (event.stage === 'writing-output') {
+      updateProgress(87 + 4 * Math.min(1, event.fraction), 'Preparing separated audio', 'Converting AI outputs for playback…');
+    }
+  }
+  async function getSeparationModule() {
+    if (!separatorModulePromise) {
+      separatorModulePromise = import(SEPARATOR_LIB_URL).catch(e => {
+        separatorModulePromise = null;
+        throw Error('Could not load the compact AI engine. The first run needs internet access to jsDelivr. ' + (e.message || e));
+      });
+    }
+    return await separatorModulePromise;
+  }
+  async function decodeStemUrl(url) {
+    const res = await fetch(url);
+    if (!res.ok) throw Error('Unable to open an AI-generated audio stem.');
+    const b = await audioContext.decodeAudioData(await res.arrayBuffer());
+    const l = b.getChannelData(0), r = b.numberOfChannels > 1 ? b.getChannelData(1) : l;
+    return { left: l, right: r, sampleRate: b.sampleRate };
+  }
+  async function aiSeparate() {
+    const chosenModel = $('aiModel').value;
+    if (chosenModel === 'htdemucs') {
+      updateProgress(7,'Preparing optional Demucs model','Large 166 MB download; memory demand can exceed several gigabytes.');
+      const mod = await import('./demucs.js');
+      return await mod.separateDemucs({
+        audioBuffer: decoded, backend: $('aiBackend').value, aborted:()=>cancelled,
+        onProgress:(fraction,message)=>updateProgress(10+80*fraction, message, 'High-memory Demucs v4 processing locally…')
+      });
+    }
+
+    const backend = $('aiBackend').value;
+    const key = `${chosenModel}:${backend}`;
+    const module = await getSeparationModule();
+    isAbort();
+    if (!separator || separatorKey !== key) {
+      // Drop any previous session before initializing another model/backend.
+      if (separator && typeof separator.dispose === 'function') {
+        try { await separator.dispose(); } catch (_) { /* optional library API */ }
+      }
+      separator = null;
+      separatorKey = null;
+      const providers = backend === 'cpu' || !navigator.gpu ? ['wasm'] : ['webgpu', 'wasm'];
+      updateProgress(9, 'Loading smaller AI model', 'Using a compact 30–67 MB model instead of the 166 MB Demucs model.');
+      const next = module.createSeparator(chosenModel, {
+        common: { onProgress: reportAiProgress, logLevel: 'error' },
+        mdx: { executionProviders: providers, batchSize: 1, segmentSize: 256, overlap: .125, hopLength: 1024 }
+      });
+      try {
+        await next.loadModel();
+        separator = next;
+        separatorKey = key;
+      } catch (e) {
+        // Never automatically initialize the large Demucs model as a fallback.
+        throw e;
+      }
+    }
+    $('modelState').textContent = backend === 'cpu' || !navigator.gpu ? 'CPU model ready' : 'AI model ready';
+    isAbort();
+    updateProgress(35, 'Running AI separation', 'Processing your audio locally in short segments…');
+    const stemUrls = await separator.separate(originalUrl);
+    if (stemUrls.length !== 2) throw Error('The separator produced an unexpected number of audio stems.');
+    try {
+      isAbort();
+      // This library returns the secondary stem first, then its primary stem.
+      // Karaoke is primarily instrumental; Kim/Voc_FT are primarily vocals.
+      const karaoke = chosenModel === 'UVR_MDXNET_KARA_2';
+      const instrumentalUrl = karaoke ? stemUrls[1] : stemUrls[0];
+      const vocalUrl = karaoke ? stemUrls[0] : stemUrls[1];
+      updateProgress(92, 'Decoding instrumental', 'Preparing local audio preview…');
+      const ins = await decodeStemUrl(instrumentalUrl);
+      isAbort();
+      updateProgress(94, 'Decoding isolated vocals', 'Preparing local audio preview…');
+      const voc = await decodeStemUrl(vocalUrl);
+      isAbort();
+      if (ins.sampleRate !== voc.sampleRate || ins.left.length !== voc.left.length) {
+        throw Error('The separator returned stems of different lengths or rates.');
+      }
+      return { sampleRate: ins.sampleRate, instrument: [ins.left, ins.right], vocals: [voc.left, voc.right] };
+    } finally {
+      for (const url of stemUrls) if (typeof url === 'string' && url.startsWith('blob:')) URL.revokeObjectURL(url);
+    }
+  }
+  function friendlyError(err, which) {
+    const msg = err?.message || String(err);
+    if (which !== 'ai') return msg;
+    if (/bad_alloc|out.of.memory|memory allocation|insufficient memory|failed to allocate|device lost/i.test(msg)) {
+      return 'The browser ran out of available memory while loading or processing the AI model. The page now uses smaller models, but hardware still has limits. Select Compact (30 MB) and CPU only, close other tabs, then retry with a 30-second test clip.\n\nTechnical detail: ' + msg;
+    }
+    return msg + '\n\nTry Compact (30 MB) with CPU only if your GPU cannot initialize the model.';
+  }
+  els.run.addEventListener('click',async()=>{
+    if(processing || !decoded)return;
+    processing=true;cancelled=false;els.run.disabled=true;$('replaceBtn').disabled=true;els.runText.textContent='Processing…';$('cancelBtn').style.display='inline';clearError();els.results.style.display='none';els.placeholder.style.display='flex';stems=null;cleanupUrls();
+    const which=stageMode;
+    try{updateProgress(2,'Preparing audio','Nothing is uploaded to a server.');const data=which==='ai'?await aiSeparate():await quickSeparate();isAbort();await showResults(data,which)}
+    catch(err){if(err.name==='AbortError'){updateProgress(0,'Cancelled','Your audio file has not been changed.')}else{console.error(err);showError(friendlyError(err,which));els.status.classList.remove('visible');}}
+    finally{processing=false;els.run.disabled=!decoded;$('replaceBtn').disabled=false;els.runText.textContent='Remove vocals';$('cancelBtn').style.display='none';}
+  });
+  $('cancelBtn').addEventListener('click',()=>{cancelled=true;$('cancelBtn').disabled=true;els.detail.textContent='Stopping at the next safe point…';setTimeout(()=>$('cancelBtn').disabled=false,500)});
+  $('instrumentWav').addEventListener('click',()=>{if(stems)downloadBlob(stems.wavs.instrument,baseName()+'_instrumental.wav')});
+  $('vocalsWav').addEventListener('click',()=>{if(stems)downloadBlob(stems.wavs.vocals,baseName()+'_vocals.wav')});
+  let lamePromise=null;
+  function loadMp3Encoder(){
+    if(window.lamejs)return Promise.resolve(window.lamejs);
+    if(!lamePromise)lamePromise=new Promise((resolve,reject)=>{
+      const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js';script.onload=()=>window.lamejs?resolve(window.lamejs):reject(Error('MP3 encoder loaded but could not initialize.'));
+      script.onerror=()=>reject(Error('MP3 encoder unavailable. Connect once to download it, or save as WAV (always offline).'));document.head.append(script);
+    }).catch(e=>{lamePromise=null;throw e});
+    return lamePromise;
+  }
+  async function encodeMp3(pair,sampleRate){
+    const lame=await loadMp3Encoder();const l=pair[0],r=pair[1];let useL=l,useR=r,rate=sampleRate;
+    if(![32000,44100,48000].includes(rate)){
+      const b=new AudioBuffer({length:l.length,numberOfChannels:2,sampleRate:sampleRate});b.copyToChannel(l,0);b.copyToChannel(r,1);
+      const z=await resampleTo44100(b);useL=z[0];useR=z[1];rate=44100;
+    }
+    const mp3=new lame.Mp3Encoder(2,rate,192),parts=[],block=1152,sl=new Int16Array(block),sr=new Int16Array(block);
+    for(let start=0;start<useL.length;start+=block){
+      const end=Math.min(useL.length,start+block),size=end-start;
+      if(size!==block){sl.fill(0);sr.fill(0)}
+      for(let i=0;i<size;i++){let a=Math.min(1,Math.max(-1,useL[start+i])),b=Math.min(1,Math.max(-1,useR[start+i]));sl[i]=a<0?a*32768:a*32767;sr[i]=b<0?b*32768:b*32767}
+      const out=mp3.encodeBuffer(sl,sr);if(out.length)parts.push(new Uint8Array(out));
+      if(start%(1152*96)===0){updateProgress(100*end/useL.length,'Encoding MP3','Audio encoding is happening on your device…');await $sleep()}
+    }
+    const tail=mp3.flush();if(tail.length)parts.push(new Uint8Array(tail));return new Blob(parts,{type:'audio/mpeg'});
+  }
+  document.querySelectorAll('button.mp3').forEach(button=>button.addEventListener('click',async()=>{
+    if(!stems||processing)return;clearError();const label=button.textContent;const which=button.dataset.stem;
+    processing=true;els.run.disabled=true;button.disabled=true;button.textContent='Encoding…';
+    try{updateProgress(2,'Loading MP3 encoder','First use may require an internet connection.');
+      const mp3=await encodeMp3(stems[which],stems.sampleRate);downloadBlob(mp3,baseName()+'_'+(which==='instrument'?'instrumental':'vocals')+'.mp3');els.status.classList.remove('visible');}
+    catch(e){showError(e.message||String(e));els.status.classList.remove('visible');}
+    finally{processing=false;els.run.disabled=!decoded;button.disabled=false;button.textContent=label;}
+  }));
+  window.addEventListener('beforeunload',()=>{cleanupUrls();if(originalUrl)URL.revokeObjectURL(originalUrl)});
+  setMode('quick');
+})();
+</script>
+</body>
+</html>
